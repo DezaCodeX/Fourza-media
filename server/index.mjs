@@ -15,9 +15,19 @@ const isProduction = process.env.NODE_ENV === 'production';
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const db = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false, autoRefreshToken: false } }) : null;
+const smtpConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD && process.env.SMTP_FROM_EMAIL);
+console.log(`[config] database=${db ? 'configured' : 'missing'} smtp=${smtpConfigured ? 'configured' : 'missing'} production=${isProduction}`);
 
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
+app.use((req, res, next) => {
+  const startedAt = Date.now();
+  res.on('finish', () => {
+    const pathname = new URL(req.originalUrl, 'http://localhost').pathname;
+    console.log(`[request] ${req.method} ${pathname} ${res.statusCode} ${Date.now() - startedAt}ms`);
+  });
+  next();
+});
 app.use(express.json({ limit: '20kb', strict: true }));
 app.use((req, _res, next) => {
   req.cookies = Object.fromEntries((req.headers.cookie || '').split(';').map((part) => part.trim()).filter(Boolean).map((part) => { const index = part.indexOf('='); return [decodeURIComponent(part.slice(0, index)), decodeURIComponent(part.slice(index + 1))]; }));
@@ -106,6 +116,7 @@ app.post('/api/enquiries', limit({ windowMs: 15 * 60_000, max: 5 }), ensureDb, o
     return res.status(201).json({ success: true, emailStatus: delivered.status });
   } catch (error) {
     const reason = String(error?.message || 'Email delivery failed.').slice(0, 300);
+    console.error(`[enquiry] delivery failed for ${saved.data.id}: ${reason}`);
     await db.from('enquiries').update({ email_status: 'FAILED', email_error: reason, email_attempted_at: new Date().toISOString() }).eq('id', saved.data.id);
     return res.status(201).json({ success: true, emailStatus: 'FAILED', message: 'Your enquiry was received and saved, but email delivery is delayed. We will follow up shortly.' });
   }
@@ -175,7 +186,7 @@ app.get('/api/contact', async (_req, res) => {
   res.set('Cache-Control', 'public, max-age=300'); res.json({ email, phones: phone.split('/').map((part) => part.trim()).filter(Boolean) });
 });
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found.' }));
-if (isProduction) app.use(express.static(path.join(root, 'dist'), { index: false }));
+if (isProduction) app.use(express.static(path.join(root, 'dist'), { index: false, redirect: false }));
 else {
   const { createServer } = await import('vite');
   const vite = await createServer({ server: { middlewareMode: true }, appType: 'spa' });
@@ -195,4 +206,8 @@ if (db && process.env.ADMIN_LOGIN_EMAIL && process.env.ADMIN_LOGIN_PASSWORD && p
     else console.log(`Initial admin account created for ${adminEmail}.`);
   }
 }
-app.listen(port, '0.0.0.0', () => console.log(`Fourza Media server listening on ${port}`));
+export default app;
+
+if (!process.env.VERCEL) {
+  app.listen(port, '0.0.0.0', () => console.log(`Fourza Media server listening on ${port}`));
+}
