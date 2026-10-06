@@ -14,9 +14,24 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const isProduction = process.env.NODE_ENV === 'production';
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const db = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false, autoRefreshToken: false } }) : null;
+function isPublicSupabaseKey(key) {
+  if (!key) return false;
+  if (/^sb_(publishable|anon)_/.test(key)) return true;
+  if (!key.startsWith('eyJ')) return false;
+  try {
+    const payload = JSON.parse(Buffer.from(key.split('.')[1], 'base64url').toString('utf8'));
+    return payload.role === 'anon';
+  } catch {
+    return false;
+  }
+}
+const publicSupabaseKey = isPublicSupabaseKey(supabaseKey);
+const db = supabaseUrl && supabaseKey && !publicSupabaseKey ? createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false, autoRefreshToken: false } }) : null;
 const smtpConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD && process.env.SMTP_FROM_EMAIL);
-console.log(`[config] database=${db ? 'configured' : 'missing'} smtp=${smtpConfigured ? 'configured' : 'missing'} production=${isProduction}`);
+const databaseConfigError = publicSupabaseKey
+  ? 'Supabase service-role key is invalid. Configure SUPABASE_SERVICE_ROLE_KEY with the Supabase server-side service-role secret.'
+  : 'Enquiry service is not configured. Please contact us directly.';
+console.log(`[config] database=${db ? 'configured' : publicSupabaseKey ? 'invalid-public-key' : 'missing'} smtp=${smtpConfigured ? 'configured' : 'missing'} production=${isProduction}`);
 
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
@@ -57,11 +72,12 @@ function originGuard(req, res, next) {
   next();
 }
 function ensureDb(req, res, next) {
-  if (!db) return res.status(503).json({ error: 'Enquiry service is not configured. Please contact us directly.' });
+  if (!db) return res.status(503).json({ error: databaseConfigError });
   next();
 }
 function schemaSetupMessage(error, area) {
   if (error?.code === 'PGRST205' || error?.code === '42P01') return `${area} database is not initialized. Apply the Supabase migration in README.md, then restart the server.`;
+  if (error?.code === '42501') return 'Supabase service-role access is not configured. Set SUPABASE_SERVICE_ROLE_KEY to the server-side service-role secret.';
   return null;
 }
 function clean(value, max) { return String(value ?? '').trim().replace(/[\u0000-\u001f\u007f]/g, '').slice(0, max); }
@@ -125,7 +141,7 @@ app.post('/api/enquiries', limit({ windowMs: 15 * 60_000, max: 5 }), ensureDb, o
 app.post('/api/admin/login', limit({ windowMs: 15 * 60_000, max: 8, key: (req) => `${req.ip}:${clean(req.body?.email, 254).toLowerCase()}` }), ensureDb, originGuard, async (req, res) => {
   const email = clean(req.body?.email, 254).toLowerCase(); const password = String(req.body?.password ?? '');
   const admin = await db.from('fourza_admins').select('id,email,password_hash').eq('email', email).maybeSingle();
-  if (admin.error) return res.status(503).json({ error: schemaSetupMessage(admin.error, 'Admin') || 'Admin sign in is not configured.' });
+  if (admin.error) return res.status(503).json({ error: schemaSetupMessage(admin.error, 'Admin') || 'Admin sign in is not configured. Check the Supabase service-role configuration.' });
   let ok = false;
   if (admin.data && password.length >= 1) { const [salt, hash] = admin.data.password_hash.split(':'); const candidate = await scrypt(password, salt, 64); ok = timingSafeEqual(Buffer.from(hash, 'hex'), candidate); }
   if (!ok) return res.status(401).json({ error: 'Email or password is incorrect.' });

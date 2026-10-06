@@ -21,6 +21,8 @@ This repository includes a Vercel serverless entry point and SPA rewrites for `/
 
 `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM_EMAIL`, `ADMIN_EMAIL`, `ADMIN_LOGIN_EMAIL`, and `ADMIN_LOGIN_PASSWORD`.
 
+`SUPABASE_SERVICE_ROLE_KEY` must be the server-side service-role secret from Supabase Project Settings → API. Do not use a publishable, anon, or `VITE_` key; those keys cannot read or write the protected enquiry and admin tables. Use a password of at least 12 characters for `ADMIN_LOGIN_PASSWORD`. If an admin account was already created, changing this variable does not reset its password.
+
 After deployment, check the Vercel function logs for `[config] database=configured smtp=configured`. Each request is logged as `[request] METHOD PATH STATUS DURATIONms`; enquiry delivery failures are logged with an `[enquiry]` prefix. Request bodies and credentials are deliberately not logged.
 
 ## Gallery images
