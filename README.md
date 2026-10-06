@@ -18,3 +18,7 @@ View your app in AI Studio: https://ai.studio/apps/0b25c606-47ac-44fa-b8de-db2cc
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Gallery images
+
+Add supported image files (`.jpg`, `.jpeg`, `.png`, `.webp`, or `.avif`) under `public/gallery/` in a category folder, such as `public/gallery/weddings/` or `public/gallery/college-events/`. The Vite gallery module discovers files and category labels automatically during development and production builds. Image alt text is derived from the filename; use descriptive filenames for accessible labels. Existing curated gallery entries and their optimized previews are maintained in `src/data/gallery.ts`.
