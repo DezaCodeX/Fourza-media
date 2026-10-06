@@ -1,9 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Space+Grotesk:wght@300..700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Monglandemo";
+  src: url("../Moglan_DEMO.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+}
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Space Grotesk", sans-serif;
+  --font-display: "Monglandemo", "Space Grotesk", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
   --color-brand: #FF8A00;
   --color-slate: #2C3F42;
@@ -12,6 +20,7 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: 90px;
     background: #000;
   }
 
@@ -38,6 +47,10 @@
       linear-gradient(180deg, #050505 0%, #000000 28%, #060606 100%);
   }
 
+  img {
+    max-width: 100%;
+  }
+
   a {
     color: inherit;
     text-decoration: none;
@@ -48,6 +61,51 @@
   textarea,
   select {
     font: inherit;
+  }
+}
+
+@layer components {
+  .section-kicker {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: rgba(255, 255, 255, 0.48);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    line-height: 1.5;
+    text-transform: uppercase;
+  }
+
+  .section-kicker::before {
+    width: 1.5rem;
+    height: 1px;
+    flex: none;
+    background: var(--color-brand);
+    content: "";
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.6rem, 6vw, 5.6rem);
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 0.9;
+    text-transform: uppercase;
+  }
+
+  .fourza-image-reveal {
+    animation: fourza-image-reveal 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    will-change: clip-path;
+  }
+
+  @keyframes fourza-image-reveal {
+    from { clip-path: inset(0 0 100% 0); }
+    to { clip-path: inset(0 0 0 0); }
+  }
+
+  .group:hover .fourza-image-reveal {
+    filter: brightness(1.04);
   }
 }
 
@@ -69,5 +127,20 @@
 
   .text-glow {
     text-shadow: 0 0 18px rgba(255, 138, 0, 0.18);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }
