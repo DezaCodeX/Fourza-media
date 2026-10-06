@@ -15,6 +15,14 @@ SMTP and Supabase secrets must stay in `.env` and must never use the `VITE_` pre
 
 Run `npm run build` to produce the frontend bundle and `npm start` to run the production Express server. The hosting platform must run the Node server rather than serve `dist` as a static-only site, because enquiry handling and the admin dashboard depend on `/api`.
 
+## Vercel deployment
+
+This repository includes a Vercel serverless entry point and SPA rewrites for `/gallery`, `/admin`, and portfolio routes. Add these environment variables in the Vercel project settings for the enquiry and admin APIs to work:
+
+`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM_EMAIL`, `ADMIN_EMAIL`, `ADMIN_LOGIN_EMAIL`, and `ADMIN_LOGIN_PASSWORD`.
+
+After deployment, check the Vercel function logs for `[config] database=configured smtp=configured`. Each request is logged as `[request] METHOD PATH STATUS DURATIONms`; enquiry delivery failures are logged with an `[enquiry]` prefix. Request bodies and credentials are deliberately not logged.
+
 ## Gallery images
 
 Add supported image files (`.jpg`, `.jpeg`, `.png`, `.webp`, or `.avif`) under `public/gallery/` in a category folder, such as `public/gallery/weddings/` or `public/gallery/college-events/`. The Vite gallery module discovers files and category labels automatically during development and production builds. Image alt text is derived from the filename; use descriptive filenames for accessible labels. Existing curated gallery entries and their optimized previews are maintained in `src/data/gallery.ts`.
