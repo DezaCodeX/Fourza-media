@@ -3,38 +3,10 @@ import { motion } from 'motion/react';
 import { ArrowRight, ArrowUpRight, Mail, MapPin, Phone, Sparkles } from 'lucide-react';
 import { galleryItems } from '../data/gallery';
 import { services } from '../data/services';
+import { defaultContact } from '../data/contact';
 import { GalleryPreview } from './Gallery';
 import SiteFooter from './SiteFooter';
 import SiteNavigation from './SiteNavigation';
-
-function PremiumCursor() {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [active, setActive] = useState(false);
-
-  useEffect(() => {
-    const onMove = (event: MouseEvent) => setPosition({ x: event.clientX, y: event.clientY });
-    const onOver = (event: MouseEvent) => {
-      const target = event.target as HTMLElement | null;
-      setActive(Boolean(target?.closest('a, button')));
-    };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseover', onOver);
-    return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseover', onOver);
-    };
-  }, []);
-
-  return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none fixed left-0 top-0 z-[60] hidden md:block"
-      style={{ transform: `translate3d(${position.x - 18}px, ${position.y - 18}px, 0)` }}
-    >
-      <div className={`h-9 w-9 rounded-full border transition-all duration-200 ${active ? 'scale-125 border-brand bg-brand/15 shadow-[0_0_30px_rgba(255,138,0,0.3)]' : 'border-white/25 bg-white/5'}`} />
-    </div>
-  );
-}
 
 function Particles() {
   const particles = useMemo(
@@ -68,15 +40,31 @@ function SectionKicker({ children }: { children: string }) {
 }
 
 function ContactSection() {
-  const sendInquiry = (event: FormEvent<HTMLFormElement>) => {
+  const [sending, setSending] = useState(false);
+  const [notice, setNotice] = useState<{ type: 'success' | 'received' | 'error'; text: string } | null>(null);
+  const [contact, setContact] = useState(defaultContact);
+  useEffect(() => { fetch('/api/contact').then((response) => response.ok ? response.json() : null).then((data) => { if (data) setContact({ email: data.email, phones: data.phones }); }).catch(() => {}); }, []);
+  const sendInquiry = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const name = String(form.get('name') ?? '');
-    const email = String(form.get('email') ?? '');
-    const service = String(form.get('service') ?? '');
-    const message = String(form.get('message') ?? '');
-    const body = `Name: ${name}\nEmail: ${email}\nService: ${service}\n\n${message}`;
-    window.location.href = `mailto:fourzamedia@gmail.com?subject=${encodeURIComponent(`Project enquiry from ${name}`)}&body=${encodeURIComponent(body)}`;
+    if (sending) return;
+    setSending(true);
+    setNotice(null);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    try {
+      const response = await fetch('/api/enquiries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: form.get('name'), email: form.get('email'), mobile: form.get('mobile'), service: form.get('service'), message: form.get('message'), website: form.get('website') }) });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        const fieldMessages = result.fields ? Object.values(result.fields).join(' ') : '';
+        throw new Error(fieldMessages || result.error || 'Your enquiry could not be processed.');
+      }
+      formElement.reset();
+      setNotice({ type: result.emailStatus === 'FAILED' ? 'received' : 'success', text: result.emailStatus === 'FAILED' ? (result.message || 'Your enquiry was received and saved. Email delivery is delayed; we will follow up shortly.') : "Thank you. Your enquiry has been received. We'll get back to you soon." });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      const actionable = message.startsWith('Please ') || message.startsWith('Too many');
+      setNotice({ type: 'error', text: actionable ? message : 'Your enquiry could not be processed. Please try again or contact us directly.' });
+    } finally { setSending(false); }
   };
 
   return (
@@ -90,12 +78,10 @@ function ContactSection() {
             Share a little about your event, brand, or creative brief. We&apos;ll be in touch to start shaping the details.
           </p>
           <div className="mt-9 space-y-4">
-            <a href="mailto:fourzamedia@gmail.com" className="flex items-center gap-4 text-sm text-white/70 transition-colors hover:text-brand">
-              <Mail className="h-4 w-4 text-brand" /> fourzamedia@gmail.com
+            <a href={`mailto:${contact.email}`} className="flex items-center gap-4 text-sm text-white/70 transition-colors hover:text-brand">
+              <Mail className="h-4 w-4 text-brand" /> {contact.email}
             </a>
-            <a href="tel:+917845116624" className="flex items-center gap-4 text-sm text-white/70 transition-colors hover:text-brand">
-              <Phone className="h-4 w-4 text-brand" /> +91 78451 16624 <span className="text-white/25">/</span> +91 88838 81200
-            </a>
+            {contact.phones.map((phone) => <a key={phone} href={`tel:${phone.replace(/[^+\d]/g, '')}`} className="flex items-center gap-4 text-sm text-white/70 transition-colors hover:text-brand"><Phone className="h-4 w-4 text-brand" /> {phone}</a>)}
             <p className="flex items-center gap-4 text-sm text-white/45">
               <MapPin className="h-4 w-4 text-brand" /> Rathinam Group of Institutions and beyond
             </p>
@@ -113,8 +99,12 @@ function ContactSection() {
             </label>
           </div>
           <label className="grid gap-2 text-[9px] uppercase tracking-[0.18em] text-white/45">
+            Mobile / contact number
+            <input name="mobile" type="tel" required autoComplete="tel" inputMode="tel" pattern="[+0-9() .-]{8,20}" title="Enter a valid Indian mobile number or international number, including country code." className="rounded-none border border-white/12 bg-black/35 px-4 py-3 text-sm normal-case tracking-normal text-white outline-none transition-colors placeholder:text-white/25 focus:border-brand" placeholder="+91 98765 43210" />
+          </label>
+          <label className="grid gap-2 text-[9px] uppercase tracking-[0.18em] text-white/45">
             Service
-            <select name="service" className="rounded-none border border-white/12 bg-black/35 px-4 py-3 text-sm tracking-normal text-white outline-none transition-colors focus:border-brand">
+            <select name="service" required className="rounded-none border border-white/12 bg-black/35 px-4 py-3 text-sm tracking-normal text-white outline-none transition-colors focus:border-brand">
               {services.map((service) => <option key={service.slug} value={service.title} className="bg-zinc-950">{service.title}</option>)}
             </select>
           </label>
@@ -122,8 +112,10 @@ function ContactSection() {
             Tell us about it
             <textarea name="message" required rows={5} className="resize-y rounded-none border border-white/12 bg-black/35 px-4 py-3 text-sm normal-case tracking-normal text-white outline-none transition-colors placeholder:text-white/25 focus:border-brand" placeholder="A few details about the project, timing, and what you have in mind..." />
           </label>
-          <button type="submit" className="mt-1 inline-flex items-center justify-center gap-3 bg-brand px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-black transition-colors hover:bg-white">
-            Send an enquiry <ArrowUpRight className="h-4 w-4" />
+          <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="pointer-events-none absolute h-px w-px opacity-0" />
+          {notice && <p role="status" className={`border px-4 py-3 text-sm ${notice.type !== 'error' ? 'border-brand/30 bg-brand/5 text-white/80' : 'border-red-400/30 bg-red-400/5 text-red-200'}`}><span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.18em]">{notice.type === 'success' ? 'Enquiry sent' : notice.type === 'received' ? 'Enquiry received' : 'Something went wrong'}</span>{notice.text}</p>}
+          <button type="submit" disabled={sending} className="mt-1 inline-flex items-center justify-center gap-3 bg-brand px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-black transition-colors hover:bg-white disabled:cursor-wait disabled:opacity-70">
+            {sending ? 'Sending...' : notice?.type === 'success' ? 'Enquiry sent' : notice?.type === 'received' ? 'Enquiry received' : 'Send Enquiry'} <ArrowUpRight className="h-4 w-4" />
           </button>
         </form>
       </div>
@@ -139,7 +131,6 @@ export default function CinematicAgencySite() {
   return (
     <div className="relative overflow-hidden bg-black text-white">
       <SiteNavigation />
-      <PremiumCursor />
       <main id="home">
         <header className="relative min-h-[90vh] overflow-hidden pt-[76px] lg:min-h-screen">
           <Particles />
@@ -207,7 +198,7 @@ export default function CinematicAgencySite() {
                   src="https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=1400&q=85"
                   alt="A live performance captured beneath stage lights"
                   fetchPriority="high"
-                  className="h-full w-full object-cover transition-transform duration-1000 hover:scale-[1.035]"
+                  className="fourza-image-reveal h-full w-full object-cover transition-transform duration-1000 hover:scale-[1.035]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/10" />
                 <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4">
@@ -267,7 +258,7 @@ export default function CinematicAgencySite() {
                 transition={{ duration: 0.55, delay: index * 0.08 }}
                 className="group relative flex min-h-[390px] flex-col justify-end overflow-hidden border border-white/10 bg-zinc-950 p-6 sm:min-h-[460px]"
               >
-                <img src={service.image} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover opacity-50 transition-all duration-700 group-hover:scale-[1.04] group-hover:opacity-70" />
+                <img src={service.image} alt="" loading="lazy" decoding="async" className="fourza-image-reveal absolute inset-0 h-full w-full object-cover opacity-50 transition-all duration-700 group-hover:scale-[1.04] group-hover:opacity-70" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
                 <div className="relative">
                   <span className="text-[9px] uppercase tracking-[0.2em] text-brand">{service.category}</span>

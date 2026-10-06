@@ -38,7 +38,7 @@ export default function ServiceDetailPage({ service }: ServiceDetailPageProps) {
       <SiteNavigation />
       <main className="bg-black pt-[76px]">
         <section className="relative flex min-h-[72vh] items-end overflow-hidden border-b border-white/10">
-          <img src={service.image} alt="" className="absolute inset-0 h-full w-full object-cover opacity-55" fetchPriority="high" />
+          <img src={service.image} alt="" className="fourza-image-reveal absolute inset-0 h-full w-full object-cover opacity-55" fetchPriority="high" />
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/55 to-black/15" />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/10" />
           <div className="relative mx-auto w-full max-w-7xl px-5 pb-12 pt-32 sm:px-8 sm:pb-16 lg:px-10 lg:pb-20">
@@ -101,7 +101,7 @@ export default function ServiceDetailPage({ service }: ServiceDetailPageProps) {
                   alt={`${service.title} visual ${index + 1}`}
                   loading="lazy"
                   decoding="async"
-                  className={`h-full min-h-64 w-full object-cover transition-transform duration-700 hover:scale-[1.025] ${index === 0 ? 'md:min-h-[540px]' : 'md:min-h-[260px]'}`}
+                  className={`fourza-image-reveal h-full min-h-64 w-full object-cover transition-transform duration-700 hover:scale-[1.025] ${index === 0 ? 'md:min-h-[540px]' : 'md:min-h-[260px]'}`}
                 />
               </motion.figure>
             ))}

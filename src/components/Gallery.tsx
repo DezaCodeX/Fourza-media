@@ -41,7 +41,7 @@ export function GalleryPreview({ items }: GalleryProps) {
                 alt={item.alt}
                 loading="lazy"
                 decoding="async"
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                className="fourza-image-reveal absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent opacity-70 transition-opacity group-hover:opacity-100" />
               <span className="absolute bottom-4 left-4 text-[9px] uppercase tracking-[0.2em] text-white/85">{item.category}</span>
@@ -130,7 +130,7 @@ export default function Gallery({ items }: GalleryProps) {
                     alt={item.alt}
                     loading="lazy"
                     decoding="async"
-                    className="block h-auto w-full transition-transform duration-700 group-hover:scale-[1.035]"
+                    className="fourza-image-reveal block h-auto w-full transition-transform duration-700 group-hover:scale-[1.035]"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-55 transition-opacity group-hover:opacity-100" />
                   <span className="absolute bottom-4 left-4 text-[9px] uppercase tracking-[0.2em] text-white/85">{item.category}</span>
@@ -174,7 +174,7 @@ export default function Gallery({ items }: GalleryProps) {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <figure className="flex max-h-full max-w-6xl flex-col items-center justify-center">
+          <figure className="fourza-image-reveal flex max-h-full max-w-6xl flex-col items-center justify-center">
             <img src={openImage.src} alt={openImage.alt} className="max-h-[78vh] max-w-full object-contain" />
             <figcaption className="mt-4 text-center text-[10px] uppercase tracking-[0.2em] text-white/60">
               {openImage.category} <span className="mx-2 text-brand">/</span> {openImage.alt}

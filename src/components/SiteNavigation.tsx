@@ -28,7 +28,7 @@ export default function SiteNavigation() {
           <span className="font-display text-lg font-bold uppercase tracking-[0.08em] text-white">Fourza <span className="text-brand">Media</span></span>
         </a>
 
-        <div className="hidden items-center gap-7 md:flex">
+        <div className="hidden items-center gap-5 lg:gap-7 md:flex">
           {links.map((link) => (
             <a
               key={link.label}
@@ -42,6 +42,8 @@ export default function SiteNavigation() {
             </a>
           ))}
         </div>
+
+        <a href="/#contact" className="hidden rounded-full bg-brand px-5 py-3 text-[9px] font-bold uppercase tracking-[0.17em] text-black transition-all duration-300 hover:-translate-y-0.5 hover:bg-white md:inline-flex lg:px-6 lg:text-[10px]">Send Enquiry</a>
 
         <button
           type="button"
@@ -68,6 +70,7 @@ export default function SiteNavigation() {
                 <ArrowUpRight className="h-4 w-4 text-brand" />
               </a>
             ))}
+            <a href="/#contact" onClick={() => setMenuOpen(false)} className="mt-4 inline-flex items-center justify-center gap-2 bg-brand px-5 py-4 text-xs font-bold uppercase tracking-[0.2em] text-black transition-colors hover:bg-white">Send Enquiry <ArrowUpRight className="h-4 w-4" /></a>
           </div>
         </div>
       )}

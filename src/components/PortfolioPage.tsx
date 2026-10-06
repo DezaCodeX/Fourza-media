@@ -34,7 +34,7 @@ export default function PortfolioPage() {
                   alt=""
                   loading="lazy"
                   decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover opacity-35 transition-all duration-700 group-hover:scale-[1.04] group-hover:opacity-60"
+                  className="fourza-image-reveal absolute inset-0 h-full w-full object-cover opacity-35 transition-all duration-700 group-hover:scale-[1.04] group-hover:opacity-60"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/65 to-black/10" />
                 <div className="relative flex items-center justify-between gap-4">

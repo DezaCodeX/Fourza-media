@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+﻿import { motion } from 'motion/react';
 import { Megaphone, Layers, Instagram, Heart, Calendar, Layout, Sparkles, Camera, ArrowUpRight } from 'lucide-react';
 
 const services = [
@@ -98,7 +98,7 @@ export default function Services() {
               <div className="relative mb-8 aspect-video overflow-hidden rounded-2xl bg-gray-50 flex items-center justify-center border border-black/5">
                 <img 
                   src={service.image} 
-                  className="absolute inset-0 w-full h-full object-cover grayscale opacity-30 group-hover:grayscale-0 group-hover:scale-110 group-hover:opacity-100 transition-all duration-700" 
+                  className="fourza-image-reveal absolute inset-0 w-full h-full object-cover grayscale opacity-30 group-hover:grayscale-0 group-hover:scale-110 group-hover:opacity-100 transition-all duration-700"
                   alt={service.title}
                 />
                 <div className={`absolute top-4 left-4 bg-black text-brand text-[10px] font-black uppercase px-2 py-1 rounded tracking-widest z-10`}>

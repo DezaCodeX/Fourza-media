@@ -6,6 +6,7 @@ import ServiceDetailPage from './components/ServiceDetailPage';
 import { galleryItems } from './data/gallery';
 import { getService } from './data/services';
 import { galleryFiles } from 'virtual:fourza-gallery';
+import AdminDashboard from './components/AdminDashboard';
 
 const galleryCollection = [
   ...galleryItems,
@@ -31,6 +32,10 @@ export default function App() {
 
   if (pathname === '/') {
     return <CinematicAgencySite />;
+  }
+  if (pathname === '/admin') {
+    document.title = 'Fourza Media | Admin';
+    return <AdminDashboard />;
   }
   if (pathname === '/portfolio') {
     return <PortfolioPage />;

@@ -58,7 +58,7 @@ export default function Events() {
             >
               <div className="flex flex-col lg:flex-row">
                 <div className="lg:w-1/3 relative overflow-hidden aspect-[4/3] lg:aspect-auto">
-                  <img src={event.image} alt={event.title} className="absolute inset-0 w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:scale-110 group-hover:opacity-100 transition-all duration-700" />
+                  <img src={event.image} alt={event.title} className="fourza-image-reveal absolute inset-0 w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:scale-110 group-hover:opacity-100 transition-all duration-700" />
                   <div className="absolute top-6 left-6 px-3 py-1 bg-black text-brand text-[10px] font-black uppercase tracking-widest rounded">
                     {event.type}
                   </div>
